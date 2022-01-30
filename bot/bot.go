@@ -70,7 +70,7 @@ func RunBot(_ context.Context, client *telegram.Client) error {
 				replyText = "Removed all files"
 			}
 			if strings.HasPrefix(m.Message, "/done") {
-				go uploadFiles(ctx, userID, entities, u, m.Message[:len("/done")])
+				go uploadFiles(ctx, userID, entities, u, m.Message[len("/done"):])
 				return nil
 			}
 		}
