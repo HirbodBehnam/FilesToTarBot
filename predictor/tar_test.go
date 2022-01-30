@@ -37,6 +37,22 @@ func TestUnicode(t *testing.T) {
 	}
 }
 
+func TestEdgeCase(t *testing.T) {
+	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
+	for i := 99; i <= 101; i++ {
+		counter := new(writerCounter)
+		realTar := tar.NewWriter(counter)
+		fakeTar := new(Tar)
+		writeTar(t, realTar, fakeTar, strings.Repeat("a", i), rng.Int63n(1024*1024))
+		if err := realTar.Close(); err != nil {
+			t.Fatalf("cannot close tar: %s\n", err)
+		}
+		if fakeTar.Total() != counter.total {
+			t.Errorf("mismach total %d vs %d\n", fakeTar.Total(), counter.total)
+		}
+	}
+}
+
 func TestFuzz(t *testing.T) {
 	const tests = 1000
 	rng := rand.New(rand.NewSource(time.Now().UnixNano()))

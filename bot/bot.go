@@ -8,6 +8,7 @@ import (
 	"github.com/gotd/td/telegram/message"
 	"github.com/gotd/td/tg"
 	"log"
+	"strings"
 )
 
 var Dispatcher = tg.NewUpdateDispatcher()
@@ -67,8 +68,9 @@ func RunBot(_ context.Context, client *telegram.Client) error {
 			case "/reset":
 				database.MainDatabase.Reset(userID)
 				replyText = "Removed all files"
-			case "/done":
-				go uploadFiles(ctx, userID, entities, u)
+			}
+			if strings.HasPrefix(m.Message, "/done") {
+				go uploadFiles(ctx, userID, entities, u, m.Message[:len("/done")])
 				return nil
 			}
 		}

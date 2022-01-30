@@ -10,10 +10,16 @@ import (
 	"github.com/gotd/td/tg"
 	"io"
 	"log"
+	"strings"
 )
 
 // uploadFiles uploads the user files to telegram
-func uploadFiles(ctx context.Context, userID int64, entities tg.Entities, u message.AnswerableMessageUpdate) {
+func uploadFiles(ctx context.Context, userID int64, entities tg.Entities, u message.AnswerableMessageUpdate, tarName string) {
+	// Check filename
+	tarName = strings.TrimSpace(tarName)
+	if tarName == "" || len(tarName) > 255 {
+		tarName = "files"
+	}
 	// At first get the files from user
 	files, totalSize := database.MainDatabase.GetFiles(userID)
 	if len(files) == 0 {
@@ -58,14 +64,14 @@ func uploadFiles(ctx context.Context, userID int64, entities tg.Entities, u mess
 		}
 	}()
 	// Now setup an uploader
-	uploadedFile, err := uploader.NewUploader(api).Upload(ctx, uploader.NewUpload("files.tar", reader, totalSize))
+	uploadedFile, err := uploader.NewUploader(api).Upload(ctx, uploader.NewUpload(tarName+".tar", reader, totalSize))
 	if err != nil {
 		log.Printf("cannot upload tar: %s\n", err)
 	}
 	// Send the uploaded file
 	document := message.UploadedDocument(uploadedFile).
 		MIME("application/x-tar").
-		Filename("files.tar")
+		Filename(tarName + ".tar")
 	_, err = sender.Reply(entities, u).Media(ctx, document)
 	// Remove the files
 	database.MainDatabase.Reset(userID)
